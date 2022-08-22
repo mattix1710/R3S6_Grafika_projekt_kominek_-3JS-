@@ -50,9 +50,9 @@ function main(){
         var keyCode = event.which;
 
         //A - rotate LEFT
-        if(keyCode == 65) rotation += 1;
+        if(keyCode == 65) rotation -= 1;
         //D - rotate RIGHT
-        if(keyCode == 68) rotation -= 1;
+        if(keyCode == 68) rotation += 1;
     }
 
     function setCameraPos(){
@@ -60,12 +60,12 @@ function main(){
         var posX = -Math.sin(rotation * Math.PI/180) * distance;
         camera.position.x = posX;
         camera.position.z = posZ;
+        
+        camera.lookAt(0,0,0);
     }
 
     var renderLoop = function(){
         setCameraPos();
-
-        camera.lookAt(0,0,0);
         renderer.render(scene, camera);
         requestAnimationFrame(renderLoop);
     }
