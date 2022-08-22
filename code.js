@@ -13,13 +13,16 @@ function main(){
                                             // ogniskowa, proporcja ekranu, [najbliższy, najdalszy] punkt widoczny w kamerze
 
     //const canvas = document.querySelector('#fireplaceView');
-    const renderer = new THREE.WebGLRenderer();             // renderer - coś w rodzaju naszego płótna (canvas)
+    const renderer = new THREE.WebGLRenderer({antialias: true});             // renderer - coś w rodzaju naszego płótna (canvas)
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio * 1.5);  // sharpening image after antialiasing
     document.body.appendChild( renderer.domElement );       // dodajemy renderer do naszego pliku HTML
 
     document.addEventListener("keydown", onDocumentKeyDown, false);     //adding event
 
     camera.position.z = 10;
+    camera.position.y = 2;
+    camera.rotation.x = 0;
 
     {
         const color = 0xFFFFFF;
@@ -39,15 +42,30 @@ function main(){
 
     scene.add(cube);
 
-    var ySpeed = 0.1;
+    var rotation = 0;
+    var distance = 10;
+    
 
     function onDocumentKeyDown(event){
         var keyCode = event.which;
-        if(keyCode == 65) cube.rotation.y -= ySpeed;        //A - rotate LEFT
-        if(keyCode == 68) cube.rotation.y += ySpeed;        //D - rotate RIGHT
+
+        //A - rotate LEFT
+        if(keyCode == 65) rotation += 1;
+        //D - rotate RIGHT
+        if(keyCode == 68) rotation -= 1;
+    }
+
+    function setCameraPos(){
+        var posZ = Math.cos(rotation * Math.PI/180) * distance;
+        var posX = -Math.sin(rotation * Math.PI/180) * distance;
+        camera.position.x = posX;
+        camera.position.z = posZ;
     }
 
     var renderLoop = function(){
+        setCameraPos();
+
+        camera.lookAt(0,0,0);
         renderer.render(scene, camera);
         requestAnimationFrame(renderLoop);
     }
