@@ -1,4 +1,5 @@
 import * as THREE from './lib/three.module.js';
+//import {OBJLoader} from './lib/OBJLoader.js';
 
 /////////////////////////////////////
 // ALL THE IMPORTANT FUNCTIONS
@@ -13,12 +14,12 @@ function main(){
                                             // ogniskowa, proporcja ekranu, [najbliższy, najdalszy] punkt widoczny w kamerze
 
     //const canvas = document.querySelector('#fireplaceView');
-    const renderer = new THREE.WebGLRenderer({antialias: true});             // renderer - coś w rodzaju naszego płótna (canvas)
+    const renderer = new THREE.WebGLRenderer({antialias: true});        // renderer - coś w rodzaju naszego płótna (canvas)
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio * 1.5);  // sharpening image after antialiasing
     document.body.appendChild( renderer.domElement );       // dodajemy renderer do naszego pliku HTML
 
-    document.addEventListener("keydown", onDocumentKeyDown, false);     //adding event
+    document.addEventListener("keydown", onDocumentKeyDown, false);     // adding event
 
     camera.position.z = 10;
     camera.position.y = 2;
@@ -28,19 +29,30 @@ function main(){
         const color = 0xFFFFFF;
         const intensity = 1;
         const light = new THREE.DirectionalLight(color, intensity);
-        light.position.set(-1, 2, 4);
+        light.position.set(-5, 2, 4);
         scene.add(light);
     }
 
-    // creating a box
-    const boxWidth = 1;
-    const boxHeight = 1;
-    const boxDepth = 1;
-    const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
-    const material = new THREE.MeshLambertMaterial({color: 0x44aa88});
-    const cube = new THREE.Mesh(geometry, material);
+    // // creating a box
+    // const boxWidth = 1;
+    // const boxHeight = 1;
+    // const boxDepth = 1;
+    // const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
+    // const material = new THREE.MeshLambertMaterial({color: 0x44aa88});
+    // const cube = new THREE.Mesh(geometry, material);
 
-    scene.add(cube);
+    // scene.add(cube);
+
+    {
+        const manager = new THREE.LoadingManager();
+        const objLoader = new THREE.ObjectLoader(manager);
+        objLoader.load('./models/windmill_001.obj', (root) => {
+            scene.add(root);
+        },
+        (error) => {
+            console.log(error);
+        });
+    }
 
     var rotation = 0;
     var distance = 10;
