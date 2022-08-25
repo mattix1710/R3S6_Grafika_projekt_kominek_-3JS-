@@ -28,21 +28,45 @@ scene.add(backLight);
 var mtlLoader = new THREE.MTLLoader();
 mtlLoader.setTexturePath('/assets/');
 mtlLoader.setPath('/assets/');
-mtlLoader.load('fireplace.mtl', function (materials) {
+mtlLoader.load('scena.mtl', function (materials) {
 
     materials.preload();
 
+    for(const material of Object.values(materials.materials)){
+        material.side = THREE.DoubleSide;
+    }
+
     var objLoader = new THREE.OBJLoader();
+    //const material = new THREE.MeshLambertMaterial({color: 0x44aa88});
     objLoader.setMaterials(materials);
     objLoader.setPath('/assets/');
-    objLoader.load('fireplace.obj', function (object) {
+    objLoader.load('scena.obj', function (object) {
 
         scene.add(object);
         object.position.y -= 0;
-
+        object.Color
     });
 
 });
+
+//////////////////////////////
+// TESTING - arrow helper
+
+
+const dir = new THREE.Vector3( 5, 0, 0 );
+
+//normalize the direction vector (convert to vector of length 1)
+dir.normalize();
+
+const origin = new THREE.Vector3( 0, 0, 0 );
+const length = 5;
+const hex = 0xffff00;
+
+const arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex );
+scene.add( arrowHelper );
+
+//
+///////////////////////////////
 
 var animate = function () {
 	requestAnimationFrame( animate );
