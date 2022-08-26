@@ -1,6 +1,3 @@
-import * as THREE from './lib/three.module.js';
-//import {OBJLoader} from './lib/OBJLoader.js';
-
 /////////////////////////////////////
 // ALL THE IMPORTANT FUNCTIONS
 //
@@ -21,15 +18,21 @@ function main(){
 
     document.addEventListener("keydown", onDocumentKeyDown, false);     // adding event
 
-    camera.position.z = 10;
-    camera.position.y = 2;
+    camera.position.z = 15;
+    camera.position.y = 1;
     camera.rotation.x = 0;
 
+//     var controls = new THREE.OrbitControls(camera, renderer.domElement);
+// controls.enableDamping = true;
+// controls.dampingFactor = 0.25;
+// controls.enableZoom = true;
+
     {
-        const color = 0xFFFFFF;
+        const color = 0xFFFF9D;
         const intensity = 1;
         const light = new THREE.DirectionalLight(color, intensity);
-        light.position.set(-5, 2, 4);
+        // position: X, Y, Z
+        light.position.set(5, 2, 4);
         scene.add(light);
     }
 
@@ -43,19 +46,52 @@ function main(){
 
     // scene.add(cube);
 
-    {
-        const manager = new THREE.LoadingManager();
-        const objLoader = new THREE.ObjectLoader(manager);
-        objLoader.load('./models/windmill_001.obj', (root) => {
-            scene.add(root);
-        },
-        (error) => {
-            console.log(error);
+    ///////////////////////////////////
+    // adding whole room model
+
+    var mtlLoader = new THREE.MTLLoader();
+    mtlLoader.setPath('/models/');
+
+    // loading 'mtl' - material files of object exported file
+    mtlLoader.load('scene.mtl', function(materials){
+        materials.preload();
+
+        // for each item in materials array - set DoubleSide parameter
+        // source of information: https://threejs.org/manual/#en/materials
+        for(const material of Object.values(materials.materials)){
+            material.side = THREE.DoubleSide;
+        }
+
+        // loading objects from obj file generated from Blender
+        var objLoader = new THREE.OBJLoader();
+        objLoader.setMaterials(materials);
+        objLoader.setPath('/models/');
+        objLoader.load('scene.obj', function(object){
+            scene.add(object);
+            object.position.y = 0;
         });
-    }
+    });
+
+
+
+    // END OF adding whole room model
+    ///////////////////////////////////
+
+    const dir = new THREE.Vector3( 5, 0, 0 );
+    //normalize the direction vector (convert to vector of length 1)
+    dir.normalize();
+
+    const origin = new THREE.Vector3( 0, 0, 0 );
+    const length = 5;
+    const hex = 0xffff00;
+
+    const arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex );
+    scene.add( arrowHelper );
 
     var rotation = 0;
     var distance = 10;
+
+    
     
 
     function onDocumentKeyDown(event){
@@ -77,7 +113,7 @@ function main(){
     }
 
     var renderLoop = function(){
-        setCameraPos();
+        //setCameraPos();
         renderer.render(scene, camera);
         requestAnimationFrame(renderLoop);
     }
