@@ -7,7 +7,7 @@
  */
 function main(){
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(24, window.innerWidth / window.innerHeight, 0.1, 1000);    
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 30000);    
                                             // ogniskowa, proporcja ekranu, [najbliższy, najdalszy] punkt widoczny w kamerze
 
     //const canvas = document.querySelector('#fireplaceView');
@@ -18,39 +18,60 @@ function main(){
 
     document.addEventListener("keydown", onDocumentKeyDown, false);     // adding event
 
-    camera.position.z = 15;
+    camera.position.z = 3;
     camera.position.y = 1;
-    camera.rotation.x = 0;
-
-//     var controls = new THREE.OrbitControls(camera, renderer.domElement);
-// controls.enableDamping = true;
-// controls.dampingFactor = 0.25;
-// controls.enableZoom = true;
+    camera.position.x = 0.5;
+    camera.rotation.x = Math.PI/180*(-5);
 
     {
-        const color = 0xFFFF9D;
-        const intensity = 1;
-        const light = new THREE.DirectionalLight(color, intensity);
-        // position: X, Y, Z
-        light.position.set(5, 2, 4);
-        scene.add(light);
+        // adding background
+
+        // TODO: all in one array??
+
+        let materialArray = [];
+        let backgroundFront = new THREE.TextureLoader().load('/res/night_sky_Front.jpg');
+        let backgroundBack  = new THREE.TextureLoader().load('/res/night_sky_Back.jpg');
+        let backgroundUp    = new THREE.TextureLoader().load('/res/night_sky_Top.jpg');
+        let backgroundDown  = new THREE.TextureLoader().load('/res/night_sky_Bottom.jpg');
+        let backgroundRight = new THREE.TextureLoader().load('/res/night_sky_Right.jpg');
+        let backgroundLeft  = new THREE.TextureLoader().load('/res/night_sky_Left.jpg');
+
+        materialArray.push(new THREE.MeshBasicMaterial({map: backgroundFront}));
+        materialArray.push(new THREE.MeshBasicMaterial({map: backgroundBack}));
+        materialArray.push(new THREE.MeshBasicMaterial({map: backgroundUp}));
+        materialArray.push(new THREE.MeshBasicMaterial({map: backgroundDown}));
+        materialArray.push(new THREE.MeshBasicMaterial({map: backgroundRight}));
+        materialArray.push(new THREE.MeshBasicMaterial({map: backgroundLeft}));
+
+        for(let i = 0; i < 6; i++){
+            materialArray[i].side = THREE.BackSide;
+        }
+
+        let skyboxGeo = new THREE.BoxGeometry(10000, 10000, 10000);
+        let skybox = new THREE.Mesh(skyboxGeo, materialArray);
+        scene.add(skybox);
     }
 
-    // // creating a box
-    // const boxWidth = 1;
-    // const boxHeight = 1;
-    // const boxDepth = 1;
-    // const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
-    // const material = new THREE.MeshLambertMaterial({color: 0x44aa88});
-    // const cube = new THREE.Mesh(geometry, material);
+    //{
+        const color = 0xFFFF9D;
+        const intensity = 1;
+        const light = new THREE.PointLight(color, intensity);//new THREE.DirectionalLight(color, intensity);
+        // position: X, Y, Z
+        light.position.set(2, 1, 4);
+        scene.add(light);
+    //}
 
-    // scene.add(cube);
+    // adding light SPHERE helper
+    const geometrySphere = new THREE.SphereGeometry(0.05);
+    const materialSphere = new THREE.MeshLambertMaterial({color: 0xFFFF00});
+    const sphere = new THREE.Mesh(geometrySphere, materialSphere);
+    scene.add(sphere);
 
     ///////////////////////////////////
     // adding whole room model
 
     var mtlLoader = new THREE.MTLLoader();
-    mtlLoader.setPath('/models/');
+    mtlLoader.setPath('/res/');
 
     // loading 'mtl' - material files of object exported file
     mtlLoader.load('scene.mtl', function(materials){
@@ -65,17 +86,19 @@ function main(){
         // loading objects from obj file generated from Blender
         var objLoader = new THREE.OBJLoader();
         objLoader.setMaterials(materials);
-        objLoader.setPath('/models/');
+        objLoader.setPath('/res/');
         objLoader.load('scene.obj', function(object){
             scene.add(object);
             object.position.y = 0;
         });
     });
 
-
-
     // END OF adding whole room model
     ///////////////////////////////////
+
+
+    ///////////////////////////////////
+    // ADDING helper arrows to the scene
 
     const dir = new THREE.Vector3( 5, 0, 0 );
     //normalize the direction vector (convert to vector of length 1)
@@ -88,11 +111,16 @@ function main(){
     const arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex );
     scene.add( arrowHelper );
 
+    ///////////////////////////////////
+
     var rotation = 0;
     var distance = 10;
 
-    
-    
+    var posXsphere = 2;
+    var posYsphere = 1.6;
+    var posZsphere = 0.4;
+    const constDiff = 0.1;
+
 
     function onDocumentKeyDown(event){
         var keyCode = event.which;
@@ -101,19 +129,42 @@ function main(){
         if(keyCode == 65) rotation -= 1;
         //D - rotate RIGHT
         if(keyCode == 68) rotation += 1;
+
+        // LIGHT POSITIONING
+        //
+        // Num 4 - go LEFT (-X)
+        if(keyCode == 100) posXsphere -= constDiff;
+        // Num 6 - go RIGHT (+X)
+        if(keyCode == 102) posXsphere += constDiff;
+        // Num 8 - go FORWARD (-Z)
+        if(keyCode == 104) posZsphere -= constDiff;
+        // Num 2 - go BACKWARD (+Z)
+        if(keyCode == 98) posZsphere += constDiff;
+        // Num - - go UP (-Y)
+        if(keyCode == 109) posYsphere -= constDiff;
+        // Num + - go DOWN (+Y)
+        if(keyCode == 107) posYsphere += constDiff;
     }
 
     function setCameraPos(){
-        var posZ = Math.cos(rotation * Math.PI/180) * distance;
-        var posX = -Math.sin(rotation * Math.PI/180) * distance;
-        camera.position.x = posX;
-        camera.position.z = posZ;
+        // var posZ = Math.cos(rotation * Math.PI/180) * distance;
+        // var posX = -Math.sin(rotation * Math.PI/180) * distance;
+        // camera.position.x = posX;
+        // camera.position.z = posZ;
         
-        camera.lookAt(0,0,0);
+        // camera.lookAt(0,0,0);
+        camera.rotation.x = Math.PI/180 * rotation;
+    }
+
+    function setLightPos(){
+        sphere.position.set(posXsphere, posYsphere, posZsphere);
+        light.position.set(posXsphere, posYsphere, posZsphere);
+        //console.log("LIGHT POS (", posXsphere, posYsphere, posZsphere, ")");
     }
 
     var renderLoop = function(){
-        //setCameraPos();
+        setCameraPos();
+        setLightPos();
         renderer.render(scene, camera);
         requestAnimationFrame(renderLoop);
     }
