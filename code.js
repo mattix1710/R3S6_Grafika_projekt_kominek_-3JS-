@@ -1,3 +1,9 @@
+///////////////////////////////////
+// GLOBAL VARIABLES
+//
+
+var fov = {FOV: 60};
+
 /////////////////////////////////////
 // ALL THE IMPORTANT FUNCTIONS
 //
@@ -7,7 +13,7 @@
  */
 function main(){
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 30000);    
+    const camera = new THREE.PerspectiveCamera(fov.FOV, window.innerWidth / window.innerHeight, 0.1, 30000);    
                                             // ogniskowa, proporcja ekranu, [najbliższy, najdalszy] punkt widoczny w kamerze
 
     //const canvas = document.querySelector('#fireplaceView');
@@ -57,15 +63,15 @@ function main(){
         const intensity = 1;
         const light = new THREE.PointLight(color, intensity);//new THREE.DirectionalLight(color, intensity);
         // position: X, Y, Z
-        light.position.set(2, 1, 4);
+        light.position.set(0.35, 0.3, 0.3);
         scene.add(light);
     //}
 
     // adding light SPHERE helper
-    const geometrySphere = new THREE.SphereGeometry(0.05);
-    const materialSphere = new THREE.MeshLambertMaterial({color: 0xFFFF00});
-    const sphere = new THREE.Mesh(geometrySphere, materialSphere);
-    scene.add(sphere);
+    // const geometrySphere = new THREE.SphereGeometry(0.05);
+    // const materialSphere = new THREE.MeshLambertMaterial({color: 0xFFFF00});
+    // const sphere = new THREE.Mesh(geometrySphere, materialSphere);
+    // scene.add(sphere);
 
     ///////////////////////////////////
     // adding whole room model
@@ -105,7 +111,7 @@ function main(){
     dir.normalize();
 
     const origin = new THREE.Vector3( 0, 0, 0 );
-    const length = 5;
+    const length = 2;
     const hex = 0xffff00;
 
     const arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex );
@@ -113,12 +119,18 @@ function main(){
 
     ///////////////////////////////////
 
+    // TODO: create particle effect - flame
+    // X value: (0.0 - 0.7)
+    // Y value: (0.0 - 0.6)
+    // Z value: (0.2 - 0.4)
+
     var rotation = 0;
     var distance = 10;
 
-    var posXsphere = 2;
-    var posYsphere = 1.6;
-    var posZsphere = 0.4;
+    // initial values - somewhere near the center of a chimney
+    var posXsphere = 0.35;
+    var posYsphere = 0.3;
+    var posZsphere = 0.3;
     const constDiff = 0.1;
 
 
@@ -146,28 +158,39 @@ function main(){
         if(keyCode == 107) posYsphere += constDiff;
     }
 
-    function setCameraPos(){
+    function setCamera(){
         // var posZ = Math.cos(rotation * Math.PI/180) * distance;
         // var posX = -Math.sin(rotation * Math.PI/180) * distance;
         // camera.position.x = posX;
         // camera.position.z = posZ;
         
         // camera.lookAt(0,0,0);
-        camera.rotation.x = Math.PI/180 * rotation;
+        camera.rotation.y = Math.PI/180 * rotation;
     }
 
     function setLightPos(){
-        sphere.position.set(posXsphere, posYsphere, posZsphere);
+        //sphere.position.set(posXsphere, posYsphere, posZsphere);
         light.position.set(posXsphere, posYsphere, posZsphere);
         //console.log("LIGHT POS (", posXsphere, posYsphere, posZsphere, ")");
     }
 
     var renderLoop = function(){
-        setCameraPos();
+        setCamera();
         setLightPos();
         renderer.render(scene, camera);
         requestAnimationFrame(renderLoop);
     }
+
+    ///////////////////////////////////
+    // GUI controls
+
+    function updateCameraFOV(){
+        camera.fov = fov.FOV;
+        camera.updateProjectionMatrix();        // used for updating FOV of camera
+    }
+
+    const gui = new lil.GUI();
+    gui.add(fov, 'FOV', 24, 70, 1).onChange( updateCameraFOV );
 
     requestAnimationFrame(renderLoop);
 }
