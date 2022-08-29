@@ -2,7 +2,7 @@
 // GLOBAL VARIABLES
 //
 
-var fov = {FOV: 60};
+var fov = {fovValue: 60};
 
 /////////////////////////////////////
 // ALL THE IMPORTANT FUNCTIONS
@@ -13,7 +13,7 @@ var fov = {FOV: 60};
  */
 function main(){
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(fov.FOV, window.innerWidth / window.innerHeight, 0.1, 30000);    
+    const camera = new THREE.PerspectiveCamera(fov.fovValue, window.innerWidth / window.innerHeight, 0.1, 30000);    
                                             // ogniskowa, proporcja ekranu, [najbliższy, najdalszy] punkt widoczny w kamerze
 
     //const canvas = document.querySelector('#fireplaceView');
@@ -174,23 +174,26 @@ function main(){
         //console.log("LIGHT POS (", posXsphere, posYsphere, posZsphere, ")");
     }
 
+    ///////////////////////////////////
+    // GUI controls
+
+    function updateCameraFOV(){
+        camera.fov = fov.fovValue;
+        camera.updateProjectionMatrix();        // used for updating FOV of camera
+    }
+
+    const gui = new lil.GUI();
+    gui.add(fov, 'fovValue', 24, 70, 1).name('FOV').onChange( updateCameraFOV );
+
+    // EOF GUI controls
+    ///////////////////////////////////
+
     var renderLoop = function(){
         setCamera();
         setLightPos();
         renderer.render(scene, camera);
         requestAnimationFrame(renderLoop);
     }
-
-    ///////////////////////////////////
-    // GUI controls
-
-    function updateCameraFOV(){
-        camera.fov = fov.FOV;
-        camera.updateProjectionMatrix();        // used for updating FOV of camera
-    }
-
-    const gui = new lil.GUI();
-    gui.add(fov, 'FOV', 24, 70, 1).onChange( updateCameraFOV );
 
     requestAnimationFrame(renderLoop);
 }
