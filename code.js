@@ -145,6 +145,31 @@ function main(){
     // Y value: (0.0 - 0.6)
     // Z value: (0.2 - 0.4)
 
+    var pm = new THREE.ParticleBasicMaterial();
+    pm.map = THREE.ImageUtils.loadTexture("./res/particle.png");
+    pm.blending = THREE.AdditiveBlending;
+    pm.transparent = true;
+    pm.size = 1.5;
+    pm.vertexColors = true;
+
+    //creating simple particle system
+    var targetGeometry = new THREE.Geometry();
+    const WIDTH = 25;
+    const HEIGHT = 25;
+
+    for(var i = 0; i < WIDTH; i++){
+        for(var j = 0; j < HEIGHT; j++){
+            var v = new THREE.Vector3(i/2-(WIDTH/2)/2, 0, j/2-(HEIGHT/2)/2);
+            targetGeometry.vertices.push(v);
+            targetGeometry.colors.push(new THREE.Color(Math.random() * 0xFFFFFF));
+        }
+    }
+
+    var ps = new THREE.ParticleSystem(targetGeometry, pm);
+    ps.name = 'ps';
+    scene.add(ps);
+
+
     var rotation = 0;
     var distance = 10;
 
