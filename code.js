@@ -141,15 +141,22 @@ function main(){
     // TODO: create particle effect - flame
     // ----------------------
     // ranges of particle positions
-    // X value: (0.0 - 0.7)
-    // Y value: (0.0 - 0.6)
-    // Z value: (0.2 - 0.4)
+    // X value: (0.1 - 0.6)
+    // Y value: (0.1 - 0.6)
+    // Z value: (0.1 - 0.25)
+    var particleXmin = 0.1;
+    var particleXmax = 0.6;
+    var particleYmin = 0.1;
+    var particleYmax = 0.6;
+    var particleZmin = 0.1;
+    var particleZmax = 0.25;
+
 
     var pm = new THREE.ParticleBasicMaterial();
     pm.map = THREE.ImageUtils.loadTexture("./res/particle.png");
     pm.blending = THREE.AdditiveBlending;
     pm.transparent = true;
-    pm.size = 1.5;
+    pm.size = 0.3;
     pm.vertexColors = true;
 
     //creating simple particle system
@@ -159,7 +166,12 @@ function main(){
 
     for(var i = 0; i < WIDTH; i++){
         for(var j = 0; j < HEIGHT; j++){
-            var v = new THREE.Vector3(i/2-(WIDTH/2)/2, 0, j/2-(HEIGHT/2)/2);
+            let xPos = Math.random()%(particleXmax - particleXmin) + particleXmin;
+            let yPos = Math.random()%(particleYmax - particleYmin) + particleYmin;
+            let zPos = Math.random()%(particleZmax - particleZmin) + particleZmin;
+
+            //var v = new THREE.Vector3(i/2-(WIDTH/2)/2, 0, j/2-(HEIGHT/2)/2);
+            var v = new THREE.Vector3(xPos, yPos, zPos);
             targetGeometry.vertices.push(v);
             targetGeometry.colors.push(new THREE.Color(Math.random() * 0xFFFFFF));
         }
@@ -170,7 +182,8 @@ function main(){
     scene.add(ps);
 
 
-    var rotation = 0;
+    var rotationH = 0;
+    var rotationV = 0;
     var distance = 10;
 
     // initial values - somewhere near the center of a chimney
@@ -183,10 +196,16 @@ function main(){
     function onDocumentKeyDown(event){
         var keyCode = event.which;
 
-        //A - rotate LEFT
-        if(keyCode == 65) rotation -= 1;
-        //D - rotate RIGHT
-        if(keyCode == 68) rotation += 1;
+        // A - rotate LEFT
+        if(keyCode == 68) rotationH -= 1;
+        // D - rotate RIGHT
+        if(keyCode == 65) rotationH += 1;
+        // W - rotate UP
+        if(keyCode == 87) rotationV += 1;
+        // S - rotate DOWN
+        if(keyCode == 83) rotationV -= 1;
+
+
 
         // LIGHT POSITIONING
         //
@@ -211,7 +230,8 @@ function main(){
         // camera.position.z = posZ;
         
         // camera.lookAt(0,0,0);
-        camera.rotation.y = Math.PI/180 * rotation;
+        camera.rotation.y = Math.PI/180 * rotationH;
+        camera.rotation.x = Math.PI/180 * rotationV;
     }
 
     function setLightPos(){
@@ -230,6 +250,7 @@ function main(){
 
     const gui = new lil.GUI();
     gui.add(fov, 'fovValue', 24, 70, 1).name('FOV').onChange( updateCameraFOV );
+    //gui.add(camera.rotation.x).name('Rotation vertical');
 
     // EOF GUI controls
     ///////////////////////////////////
