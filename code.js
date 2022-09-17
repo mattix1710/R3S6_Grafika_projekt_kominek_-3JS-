@@ -4,27 +4,6 @@
 
 var fov = {fovValue: 60};
 
-// var candle = {
-//     positionStyle  : Type.SPHERE,
-//     positionBase   : new THREE.Vector3( 0, 50, 0 ),
-//     positionRadius : 2,
-    
-//     velocityStyle  : Type.CUBE,
-//     velocityBase   : new THREE.Vector3(0,100,0),
-//     velocitySpread : new THREE.Vector3(20,0,20),
-    
-//     particleTexture : THREE.ImageUtils.loadTexture( 'images/smokeparticle.png' ),
-    
-//     sizeTween    : new Tween( [0, 0.3, 1.2], [20, 150, 1] ),
-//     opacityTween : new Tween( [0.9, 1.5], [1, 0] ),
-//     colorTween   : new Tween( [0.5, 1.0], [ new THREE.Vector3(0.02, 1, 0.5), new THREE.Vector3(0.05, 1, 0) ] ),
-//     blendStyle : THREE.AdditiveBlending,  
-    
-//     particlesPerSecond : 60,
-//     particleDeathAge   : 1.5,		
-//     emitterDeathAge    : 60
-// }
-
 /////////////////////////////////////
 // ALL THE IMPORTANT FUNCTIONS
 //
@@ -123,6 +102,7 @@ function main(){
 
 
     ///////////////////////////////////
+    // TODO: delete before release
     // ADDING helper arrows to the scene
 
     const dir = new THREE.Vector3( 5, 0, 0 );
@@ -150,36 +130,6 @@ function main(){
     var particleYmax = 0.6;
     var particleZmin = 0.1;
     var particleZmax = 0.25;
-
-
-    // var pm = new THREE.ParticleBasicMaterial();
-    // pm.map = THREE.ImageUtils.loadTexture("./res/particle.png");
-    // pm.blending = THREE.AdditiveBlending;
-    // pm.transparent = true;
-    // pm.size = 0.3;
-    // pm.vertexColors = true;
-
-    // //creating simple particle system
-    // var targetGeometry = new THREE.Geometry();
-    // const WIDTH = 25;
-    // const HEIGHT = 25;
-
-    // for(var i = 0; i < WIDTH; i++){
-    //     for(var j = 0; j < HEIGHT; j++){
-    //         let xPos = Math.random()%(particleXmax - particleXmin) + particleXmin;
-    //         let yPos = Math.random()%(particleYmax - particleYmin) + particleYmin;
-    //         let zPos = Math.random()%(particleZmax - particleZmin) + particleZmin;
-
-    //         //var v = new THREE.Vector3(i/2-(WIDTH/2)/2, 0, j/2-(HEIGHT/2)/2);
-    //         var v = new THREE.Vector3(xPos, yPos, zPos);
-    //         targetGeometry.vertices.push(v);
-    //         targetGeometry.colors.push(new THREE.Color(Math.random() * 0xFFFFFF));
-    //     }
-    // }
-
-    // var ps = new THREE.ParticleSystem(targetGeometry, pm);
-    // ps.name = 'ps';
-    // scene.add(ps);
 
     var rIle = 50
     var rSpeed = 0.01
@@ -344,7 +294,7 @@ function main(){
     var renderLoop = function(){
         setCamera();
         setLightPos();
-        //f.update(rSpeed,rWidth,rHeight)
+        f.update(rSpeed,rWidth,rHeight)
         renderer.render(scene, camera);
         requestAnimationFrame(renderLoop);
     }
