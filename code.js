@@ -152,34 +152,120 @@ function main(){
     var particleZmax = 0.25;
 
 
-    var pm = new THREE.ParticleBasicMaterial();
-    pm.map = THREE.ImageUtils.loadTexture("./res/particle.png");
-    pm.blending = THREE.AdditiveBlending;
-    pm.transparent = true;
-    pm.size = 0.3;
-    pm.vertexColors = true;
+    // var pm = new THREE.ParticleBasicMaterial();
+    // pm.map = THREE.ImageUtils.loadTexture("./res/particle.png");
+    // pm.blending = THREE.AdditiveBlending;
+    // pm.transparent = true;
+    // pm.size = 0.3;
+    // pm.vertexColors = true;
 
-    //creating simple particle system
-    var targetGeometry = new THREE.Geometry();
-    const WIDTH = 25;
-    const HEIGHT = 25;
+    // //creating simple particle system
+    // var targetGeometry = new THREE.Geometry();
+    // const WIDTH = 25;
+    // const HEIGHT = 25;
 
-    for(var i = 0; i < WIDTH; i++){
-        for(var j = 0; j < HEIGHT; j++){
-            let xPos = Math.random()%(particleXmax - particleXmin) + particleXmin;
-            let yPos = Math.random()%(particleYmax - particleYmin) + particleYmin;
-            let zPos = Math.random()%(particleZmax - particleZmin) + particleZmin;
+    // for(var i = 0; i < WIDTH; i++){
+    //     for(var j = 0; j < HEIGHT; j++){
+    //         let xPos = Math.random()%(particleXmax - particleXmin) + particleXmin;
+    //         let yPos = Math.random()%(particleYmax - particleYmin) + particleYmin;
+    //         let zPos = Math.random()%(particleZmax - particleZmin) + particleZmin;
 
-            //var v = new THREE.Vector3(i/2-(WIDTH/2)/2, 0, j/2-(HEIGHT/2)/2);
-            var v = new THREE.Vector3(xPos, yPos, zPos);
-            targetGeometry.vertices.push(v);
-            targetGeometry.colors.push(new THREE.Color(Math.random() * 0xFFFFFF));
+    //         //var v = new THREE.Vector3(i/2-(WIDTH/2)/2, 0, j/2-(HEIGHT/2)/2);
+    //         var v = new THREE.Vector3(xPos, yPos, zPos);
+    //         targetGeometry.vertices.push(v);
+    //         targetGeometry.colors.push(new THREE.Color(Math.random() * 0xFFFFFF));
+    //     }
+    // }
+
+    // var ps = new THREE.ParticleSystem(targetGeometry, pm);
+    // ps.name = 'ps';
+    // scene.add(ps);
+
+    var rIle = 50
+    var rSpeed = 0.01
+    var rWidth = 1
+    var rHeight = 0.7
+    function rand(min, max) {
+        min = parseInt(min, 10);
+        max = parseInt(max, 10);
+
+        if (min > max) {
+            var tmp = min;
+            min = max;
+            max = tmp;
         }
+
+        return (Math.random() * (max - min + 0.05) + min);
     }
 
-    var ps = new THREE.ParticleSystem(targetGeometry, pm);
-    ps.name = 'ps';
-    scene.add(ps);
+    function rand2(min, max) {
+        min = parseInt(min, 10);
+        max = parseInt(max, 10);
+
+        if (min > max) {
+            var tmp = min;
+            min = max;
+            max = tmp;
+        }
+
+        return (Math.random() * (max - min + 0.75) + min);
+    }
+
+    function Fire() {
+        var material = new THREE.MeshBasicMaterial({
+            color: 0xff6600,
+            transparent: true,
+            opacity: 0.5,
+            depthWrite: false,
+            wireframe: false,
+            blending: THREE
+                .AdditiveBlending // kluczowy element zapewniający mieszanie kolorów poszczególnych cząsteczek
+        });
+        var particles = []
+
+        function generate(ilosc) {
+            while (particles.length) {
+                scene.remove(particles.shift())
+            }
+            for (var i = 0; i < ilosc; i++) {
+                var size = rand(0.01, 0.05)
+                var particle = new THREE.Mesh(new THREE.BoxGeometry(size, size, size), material.clone())
+                particle.position.set(0.35, 0.20, 0);
+                scene.add(particle)
+                particles.push(particle)
+            }
+
+        }
+        generate(150)
+
+        function update(speed, width, height) {
+            for (var i = 0; i < particles.length; i++) {
+                if (particles[i].position.y < height) {
+                    particles[i].position.y += rand(0.01, 0.6);
+                    particles[i].material.opacity -= 0.02;
+                } else {
+                    particles[i].material.opacity = 1;
+                    particles[i].position.y = 0;
+                    particles[i].position.x = rand2(-0.175 , 0.55)
+                    console.log(particles[i].position.x)
+                }
+                if (particles[i].position.y > height / 2) {
+                    if (particles[i].position.x > 0.35)
+                        particles[i].position.x -= 0.02
+                    else
+                        particles[i].position.x += 0.02
+                }
+            }
+        }
+
+        this.generate = function (val) {
+            generate(val);
+        }
+        this.update = function (speed, width, height) {
+            update(speed, width, height);
+        }
+    }
+    var f = new Fire();
 
 
     var rotationH = 0;
@@ -258,6 +344,7 @@ function main(){
     var renderLoop = function(){
         setCamera();
         setLightPos();
+        //f.update(rSpeed,rWidth,rHeight)
         renderer.render(scene, camera);
         requestAnimationFrame(renderLoop);
     }
