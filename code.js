@@ -2,7 +2,7 @@
 // GLOBAL VARIABLES
 //
 
-var fov = {fovValue: 60};
+var fov = {fovValue: 25};
 
 /////////////////////////////////////
 // ALL THE IMPORTANT FUNCTIONS
@@ -121,20 +121,44 @@ function main(){
     // TODO: create particle effect - flame
     // ----------------------
     // ranges of particle positions
-    // X value: (0.1 - 0.6)
-    // Y value: (0.1 - 0.6)
-    // Z value: (0.1 - 0.25)
-    var particleXmin = 0.1;
-    var particleXmax = 0.6;
-    var particleYmin = 0.1;
-    var particleYmax = 0.6;
-    var particleZmin = 0.1;
-    var particleZmax = 0.25;
+    // LIMITS:
+    // X value: (0.05 - 0.65)
+    // Y value: (0.1 - 0.7)
+    // Z value: (-0.1 - 0.2)
 
-    var rIle = 50
-    var rSpeed = 0.01
+    // STARTING:
+    // X value: (0.1 - 0.6)
+    // Y value: (0.1)
+    // Z value: (-0.1 - 0.2)
+    const PARTICLE_X_MIN = 0.1;
+    const PARTICLE_X_MAX = 0.6;
+    const PARTICLE_Y_MIN = 0.15;
+    const PARTICLE_Z_MIN = -0.1;
+    const PARTICLE_Z_MAX = 0.15;
+
+    const PARTICLE_LIMIT_X_MIN = PARTICLE_X_MIN - 0.05;
+    const PARTICLE_LIMIT_X_MAX = PARTICLE_X_MAX + 0.05;
+    const PARTICLE_LIMIT_Y_MIN = PARTICLE_Y_MIN;
+    const PARTICLE_LIMIT_Y_MAX = 0.7;
+    const PARTICLE_LIMIT_Z_MIN = PARTICLE_Z_MIN;
+    const PARTICLE_LIMIT_Z_MAX = PARTICLE_Z_MAX;
+
+    const rIle = 1000
+    var rSpeed = 0.1
     var rWidth = 1
     var rHeight = 0.7
+    const particleTTL = 3.0;
+
+    function fullyRand(min, max){
+        if(min > max){
+            var aux = min;
+            min = max;
+            max = aux;
+        }
+
+        return Math.random() * (max-min) + min;
+    }
+
     function rand(min, max) {
         min = parseInt(min, 10);
         max = parseInt(max, 10);
@@ -165,13 +189,14 @@ function main(){
         var material = new THREE.MeshBasicMaterial({
             color: 0xff6600,
             transparent: true,
-            opacity: 0.5,
+            opacity: fullyRand(0.3, 0.7),
             depthWrite: false,
             wireframe: false,
             blending: THREE
                 .AdditiveBlending // kluczowy element zapewniający mieszanie kolorów poszczególnych cząsteczek
         });
         var particles = []
+        var particlesTTL = []
 
         function generate(ilosc) {
             while (particles.length) {
@@ -180,46 +205,82 @@ function main(){
             for (var i = 0; i < ilosc; i++) {
                 var size = rand(0.01, 0.05)
                 var particle = new THREE.Mesh(new THREE.BoxGeometry(size, size, size), material.clone())
-                particle.position.set(0.35, 0.20, 0);
+                particle.position.set(fullyRand(PARTICLE_X_MIN, PARTICLE_X_MAX), PARTICLE_Y_MIN, rand(PARTICLE_Z_MIN, PARTICLE_Z_MAX));
                 scene.add(particle)
                 particles.push(particle)
+                particlesTTL.push(particleTTL);
             }
 
         }
-        generate(150)
+        generate(rIle)
 
-        function update(speed, width, height) {
-            for (var i = 0; i < particles.length; i++) {
-                if (particles[i].position.y < height) {
-                    particles[i].position.y += rand(0.01, 0.6);
-                    particles[i].material.opacity -= 0.02;
-                } else {
-                    particles[i].material.opacity = 1;
-                    particles[i].position.y = 0;
-                    particles[i].position.x = rand2(-0.175 , 0.55)
-                    console.log(particles[i].position.x)
+        function resetParticle(index){
+            particles[index].position.y = PARTICLE_Y_MIN;
+            particles[index].position.x = fullyRand(PARTICLE_X_MIN, PARTICLE_X_MAX);
+            particles[index].position.z = fullyRand(PARTICLE_Z_MIN, PARTICLE_Z_MAX);
+            particles[index].material.opacity = fullyRand(0.3, 0.7);
+            particlesTTL[index] = particleTTL;
+        }
+
+        // function update(speed, width, height, delta) {
+        //     for (var i = 0; i < particles.length; i++) {
+        //         if (particles[i].position.y < height) {
+        //             particles[i].position.y += rand(0.01, 0.6) * (speed * delta/16);
+        //             particles[i].material.opacity -= 0.001;
+        //         } else if(particles[i].position.y >= PARTICLE_Y_MAX){
+        //             particles[i].position.y = PARTICLE_Y_MIN;
+        //         } else {
+        //             particles[i].material.opacity = 1;
+        //             particles[i].position.y = PARTICLE_Y_MIN;
+        //             particles[i].position.x = rand2(PARTICLE_X_MIN, PARTICLE_X_MAX)
+        //             console.log(particles[i].position.x)
+        //         }
+        //         if(Math.random()/0.5 > 1){
+        //             if (particles[i].position.y > height / 2) {
+        //                 if (particles[i].position.x > 0.35)
+        //                     particles[i].position.x -= 0.02 * (speed * delta/16);
+        //                 else
+        //                     particles[i].position.x += 0.02 * (speed * delta/16);
+        //             }
+        //         }
+        //     }
+        // }
+
+        // new UPDATE
+        function update(speed, width, height, delta){
+            for(var i = 0; i < particles.length; i++){
+                // console.log(fullyRand(0.3, 0.7));
+                // count TTL of a particle
+                particlesTTL[i] -= delta/1000;
+                
+                // if a particle has exceeded its life (TTL)
+                // delete it and create a new one
+                if(particlesTTL[i] < 0.0 ||
+                    particles[i].position.y >= PARTICLE_LIMIT_Y_MAX ||
+                    particles[i].material.opacity <= 0.0){
+                    resetParticle(i);
                 }
-                if (particles[i].position.y > height / 2) {
-                    if (particles[i].position.x > 0.35)
-                        particles[i].position.x -= 0.02
-                    else
-                        particles[i].position.x += 0.02
-                }
+
+                particles[i].position.y += rand(0.01, 0.6) * speed * (delta/16);
+                particles[i].material.opacity -= fullyRand(0.001, 0.007);
+
             }
         }
+
+
 
         this.generate = function (val) {
             generate(val);
         }
-        this.update = function (speed, width, height) {
-            update(speed, width, height);
+        this.update = function (speed, width, height, delta) {
+            update(speed, width, height, delta);
         }
     }
     var f = new Fire();
 
 
     var rotationH = 0;
-    var rotationV = 0;
+    var rotationV = -11;
     var distance = 10;
 
     // initial values - somewhere near the center of a chimney
@@ -271,9 +332,9 @@ function main(){
     }
 
     function setLightPos(){
-        //sphere.position.set(posXsphere, posYsphere, posZsphere);
+        // sphere.position.set(posXsphere, posYsphere, posZsphere);
         light.position.set(posXsphere, posYsphere, posZsphere);
-        //console.log("LIGHT POS (", posXsphere, posYsphere, posZsphere, ")");
+        // console.log("LIGHT POS (", posXsphere, posYsphere, posZsphere, ")");
     }
 
     ///////////////////////////////////
@@ -291,10 +352,17 @@ function main(){
     // EOF GUI controls
     ///////////////////////////////////
 
+    let be = Date.now(), delta = 0;
+
     var renderLoop = function(){
+        let now = Date.now();
+        delta = (now - be);
+        be = now;
+
+
         setCamera();
         setLightPos();
-        f.update(rSpeed,rWidth,rHeight)
+        f.update(rSpeed,rWidth,rHeight, delta);
         renderer.render(scene, camera);
         requestAnimationFrame(renderLoop);
     }
