@@ -130,12 +130,13 @@ function main(){
     // X value: (0.1 - 0.6)
     // Y value: (0.1)
     // Z value: (-0.1 - 0.2)
-    const PARTICLE_X_MIN = 0.1;
-    const PARTICLE_X_MAX = 0.6;
+    const PARTICLE_X_MIN = 0.05;
+    const PARTICLE_X_MAX = 0.65;
     const PARTICLE_Y_MIN = 0.15;
     const PARTICLE_Y_MAX = 0.6;
     const PARTICLE_Z_MIN = -0.1;
     const PARTICLE_Z_MAX = 0.15;
+    const PARTICLE_X_MEAN = (PARTICLE_X_MAX + PARTICLE_X_MIN) / 2;
 
     const PARTICLE_LIMIT_X_MIN = PARTICLE_X_MIN - 0.05;
     const PARTICLE_LIMIT_X_MAX = PARTICLE_X_MAX + 0.05;
@@ -150,7 +151,7 @@ function main(){
     var rHeight = 0.7
 
     // time intervals (in seconds)
-    const PARTICLE_TTL = 3.0;
+    const PARTICLE_TTL = 3.5;
     const INTERVAL_TTL = 0.1;
 
     function normalRand(min, max){
@@ -271,7 +272,10 @@ function main(){
 
                 if(newInterval){
                     // particleXvector = normalRand(-0.01, 0.01);
-                    particles[i].position.x += normalRand(-0.01, 0.01);
+                    if(particles[i].position.x < PARTICLE_X_MEAN)
+                        particles[i].position.x += normalRand(-0.01, 0.02);
+                    else if(particles[i].position.x >= PARTICLE_X_MEAN)
+                        particles[i].position.x += normalRand(-0.02, 0.01);
                 }
 
                 // if particle would go over the given limit
