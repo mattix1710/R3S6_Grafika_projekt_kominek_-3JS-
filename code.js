@@ -133,6 +133,7 @@ function main(){
     const PARTICLE_X_MIN = 0.1;
     const PARTICLE_X_MAX = 0.6;
     const PARTICLE_Y_MIN = 0.15;
+    const PARTICLE_Y_MAX = 0.6;
     const PARTICLE_Z_MIN = -0.1;
     const PARTICLE_Z_MAX = 0.15;
 
@@ -143,13 +144,16 @@ function main(){
     const PARTICLE_LIMIT_Z_MIN = PARTICLE_Z_MIN;
     const PARTICLE_LIMIT_Z_MAX = PARTICLE_Z_MAX;
 
-    const rIle = 1000
+    const rIle = 1200
     var rSpeed = 0.1
     var rWidth = 1
     var rHeight = 0.7
-    const particleTTL = 3.0;
 
-    function fullyRand(min, max){
+    // time intervals (in seconds)
+    const PARTICLE_TTL = 3.0;
+    const INTERVAL_TTL = 0.1;
+
+    function normalRand(min, max){
         if(min > max){
             var aux = min;
             min = max;
@@ -189,7 +193,7 @@ function main(){
         var material = new THREE.MeshBasicMaterial({
             color: 0xff6600,
             transparent: true,
-            opacity: fullyRand(0.3, 0.7),
+            opacity: normalRand(0.3, 0.7),
             depthWrite: false,
             wireframe: false,
             blending: THREE
@@ -197,6 +201,9 @@ function main(){
         });
         var particles = []
         var particlesTTL = []
+        var intervalTTL = 0.0;
+        var newInterval = true;
+        var particleXvector = 0.0;
 
         function generate(ilosc) {
             while (particles.length) {
@@ -205,43 +212,41 @@ function main(){
             for (var i = 0; i < ilosc; i++) {
                 var size = rand(0.01, 0.05)
                 var particle = new THREE.Mesh(new THREE.BoxGeometry(size, size, size), material.clone())
-                particle.position.set(fullyRand(PARTICLE_X_MIN, PARTICLE_X_MAX), PARTICLE_Y_MIN, rand(PARTICLE_Z_MIN, PARTICLE_Z_MAX));
+                particle.position.set(normalRand(PARTICLE_X_MIN, PARTICLE_X_MAX), PARTICLE_Y_MIN, rand(PARTICLE_Z_MIN, PARTICLE_Z_MAX));
                 scene.add(particle)
                 particles.push(particle)
-                particlesTTL.push(particleTTL);
+                particlesTTL.push(PARTICLE_TTL);
             }
+
+            intervalTTL = INTERVAL_TTL;
 
         }
         generate(rIle)
 
         function resetParticle(index){
             particles[index].position.y = PARTICLE_Y_MIN;
-            particles[index].position.x = fullyRand(PARTICLE_X_MIN, PARTICLE_X_MAX);
-            particles[index].position.z = fullyRand(PARTICLE_Z_MIN, PARTICLE_Z_MAX);
-            particles[index].material.opacity = fullyRand(0.3, 0.7);
-            particlesTTL[index] = particleTTL;
+            particles[index].position.x = normalRand(PARTICLE_X_MIN, PARTICLE_X_MAX);
+            particles[index].position.z = normalRand(PARTICLE_Z_MIN, PARTICLE_Z_MAX);
+            particles[index].material.opacity = normalRand(0.3, 0.7);
+            particlesTTL[index] = PARTICLE_TTL;
         }
 
-        // function update(speed, width, height, delta) {
+        // function update(speed, width, height) {
         //     for (var i = 0; i < particles.length; i++) {
         //         if (particles[i].position.y < height) {
-        //             particles[i].position.y += rand(0.01, 0.6) * (speed * delta/16);
-        //             particles[i].material.opacity -= 0.001;
-        //         } else if(particles[i].position.y >= PARTICLE_Y_MAX){
-        //             particles[i].position.y = PARTICLE_Y_MIN;
+        //             particles[i].position.y += rand(0.01, 0.6);
+        //             particles[i].material.opacity -= 0.02;
         //         } else {
         //             particles[i].material.opacity = 1;
-        //             particles[i].position.y = PARTICLE_Y_MIN;
-        //             particles[i].position.x = rand2(PARTICLE_X_MIN, PARTICLE_X_MAX)
+        //             particles[i].position.y = 0;
+        //             particles[i].position.x = rand2(-0.175 , 0.55)
         //             console.log(particles[i].position.x)
         //         }
-        //         if(Math.random()/0.5 > 1){
-        //             if (particles[i].position.y > height / 2) {
-        //                 if (particles[i].position.x > 0.35)
-        //                     particles[i].position.x -= 0.02 * (speed * delta/16);
-        //                 else
-        //                     particles[i].position.x += 0.02 * (speed * delta/16);
-        //             }
+        //         if (particles[i].position.y > height / 2) {
+        //             if (particles[i].position.x > 0.35)
+        //                 particles[i].position.x -= 0.02
+        //             else
+        //                 particles[i].position.x += 0.02
         //         }
         //     }
         // }
@@ -249,7 +254,7 @@ function main(){
         // new UPDATE
         function update(speed, width, height, delta){
             for(var i = 0; i < particles.length; i++){
-                // console.log(fullyRand(0.3, 0.7));
+                // console.log(normalRand(0.3, 0.7));
                 // count TTL of a particle
                 particlesTTL[i] -= delta/1000;
                 
@@ -262,8 +267,33 @@ function main(){
                 }
 
                 particles[i].position.y += rand(0.01, 0.6) * speed * (delta/16);
-                particles[i].material.opacity -= fullyRand(0.001, 0.007);
+                particles[i].material.opacity -= normalRand(0.001, 0.007);
 
+                if(newInterval){
+                    // particleXvector = normalRand(-0.01, 0.01);
+                    particles[i].position.x += normalRand(-0.01, 0.01);
+                }
+
+                // if particle would go over the given limit
+                if(particles[i].position.x <= PARTICLE_LIMIT_X_MIN){
+                    particles[i].position.x = PARTICLE_LIMIT_X_MIN + normalRand(0.0, 0.02);
+                } else if(particles[i].position.x >= PARTICLE_LIMIT_X_MAX){
+                    particles[i].position.x = PARTICLE_LIMIT_X_MAX - normalRand(0.0, 0.02);
+                } else if(particles[i].position.z <= PARTICLE_LIMIT_Z_MIN){
+                    particles[i].position.z = PARTICLE_LIMIT_Z_MIN + normalRand(0.0, 0.02);
+                } else if(particles[i].position.z >= PARTICLE_LIMIT_Z_MAX){
+                    particles[i].position.z = PARTICLE_LIMIT_Z_MAX - normalRand(0.0, 0.02);
+                }
+
+                // particles[i].position.x += particleXvector;
+
+            }
+
+            intervalTTL -= delta/1000;
+            newInterval = false;
+            if(intervalTTL <= 0){
+                intervalTTL = INTERVAL_TTL;
+                newInterval = true;
             }
         }
 
