@@ -2,7 +2,7 @@
 // GLOBAL VARIABLES
 //
 
-var fov = {fovValue: 25};
+var fov = {fovValue: 60};
 
 /////////////////////////////////////
 // ALL THE IMPORTANT FUNCTIONS
@@ -145,14 +145,16 @@ function main(){
     const PARTICLE_LIMIT_Z_MIN = PARTICLE_Z_MIN;
     const PARTICLE_LIMIT_Z_MAX = PARTICLE_Z_MAX;
 
-    const rIle = 1200
+    const DEVIATION_X_AXIS = {minDev: 0.01, maxDev: 0.02};
+
+    const QUANTITY_P = {size: 1200};
     var rSpeed = 0.1
     var rWidth = 1
     var rHeight = 0.7
 
     // time intervals (in seconds)
-    const PARTICLE_TTL = 3.5;
-    const INTERVAL_TTL = 0.1;
+    const PARTICLE_TTL = {inSec: 3.5};
+    const INTERVAL_TTL = {inSec: 0.1};
 
     function normalRand(min, max){
         if(min > max){
@@ -216,20 +218,20 @@ function main(){
                 particle.position.set(normalRand(PARTICLE_X_MIN, PARTICLE_X_MAX), PARTICLE_Y_MIN, rand(PARTICLE_Z_MIN, PARTICLE_Z_MAX));
                 scene.add(particle)
                 particles.push(particle)
-                particlesTTL.push(PARTICLE_TTL);
+                particlesTTL.push(PARTICLE_TTL.inSec);
             }
 
-            intervalTTL = INTERVAL_TTL;
+            intervalTTL = INTERVAL_TTL.inSec;
 
         }
-        generate(rIle)
+        generate(QUANTITY_P.size)
 
         function resetParticle(index){
             particles[index].position.y = PARTICLE_Y_MIN;
             particles[index].position.x = normalRand(PARTICLE_X_MIN, PARTICLE_X_MAX);
             particles[index].position.z = normalRand(PARTICLE_Z_MIN, PARTICLE_Z_MAX);
             particles[index].material.opacity = normalRand(0.3, 0.7);
-            particlesTTL[index] = PARTICLE_TTL;
+            particlesTTL[index] = PARTICLE_TTL.inSec;
         }
 
         // function update(speed, width, height) {
@@ -270,12 +272,12 @@ function main(){
                 particles[i].position.y += rand(0.01, 0.6) * speed * (delta/16);
                 particles[i].material.opacity -= normalRand(0.001, 0.007);
 
+                // for each time of passed interval - randomize particle movement on X axis
                 if(newInterval){
-                    // particleXvector = normalRand(-0.01, 0.01);
                     if(particles[i].position.x < PARTICLE_X_MEAN)
-                        particles[i].position.x += normalRand(-0.01, 0.02);
+                        particles[i].position.x += normalRand(-DEVIATION_X_AXIS.minDev, DEVIATION_X_AXIS.maxDev);
                     else if(particles[i].position.x >= PARTICLE_X_MEAN)
-                        particles[i].position.x += normalRand(-0.02, 0.01);
+                        particles[i].position.x += normalRand(-DEVIATION_X_AXIS.maxDev, DEVIATION_X_AXIS.minDev);
                 }
 
                 // if particle would go over the given limit
@@ -289,14 +291,14 @@ function main(){
                     particles[i].position.z = PARTICLE_LIMIT_Z_MAX - normalRand(0.0, 0.02);
                 }
 
-                // particles[i].position.x += particleXvector;
-
             }
 
+            // manage base interval of particle movement
             intervalTTL -= delta/1000;
             newInterval = false;
+
             if(intervalTTL <= 0){
-                intervalTTL = INTERVAL_TTL;
+                intervalTTL = INTERVAL_TTL.inSec;
                 newInterval = true;
             }
         }
@@ -382,6 +384,12 @@ function main(){
     const gui = new lil.GUI();
     gui.add(fov, 'fovValue', 24, 70, 1).name('FOV').onChange( updateCameraFOV );
     //gui.add(camera.rotation.x).name('Rotation vertical');
+
+    // gui.add(QUANTITY_P, 'size', 200, 2000, 100).name('Ilość cząsteczek');
+    gui.add(PARTICLE_TTL    , 'inSec', 2.0, 4.0, 0.1).name('TTL cząsteczki');
+    gui.add(INTERVAL_TTL    , 'inSec', 0.0, 0.5, 0.01).name('Interwał TTL cząsteczki');
+    gui.add(DEVIATION_X_AXIS, 'minDev', 0.0, 0.05, 0.005).name('MIN dewiacja na osi X');
+    gui.add(DEVIATION_X_AXIS, 'maxDev', 0.0, 0.05, 0.005).name('MAX dewiacja na osi X');
 
     // EOF GUI controls
     ///////////////////////////////////
