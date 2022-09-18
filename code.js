@@ -24,6 +24,13 @@ function main(){
 
     document.addEventListener("keydown", onDocumentKeyDown, false);     // adding event
 
+    // WALKING RANGE:
+    //
+    // X-axis (-2 - 2.9)
+    // Y-axis (0.01 - 2.3)
+    // Z-axis (-0.1 - 5)
+    //
+
     camera.position.z = 3;
     camera.position.y = 1;
     camera.position.x = 0.5;
