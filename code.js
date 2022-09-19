@@ -1,35 +1,18 @@
-///////////////////////////////////
-// GLOBAL VARIABLES
-//
-
+//Global variable
 var fov = {fovValue: 60};
 
-/////////////////////////////////////
-// ALL THE IMPORTANT FUNCTIONS
-//
-
-/**
- * Setting up the renderer scene
- */
+// Setting up a render scene
 function main(){
     const scene = new THREE.Scene();
+     // ogniskowa, proporcja ekranu, [najbliższy, najdalszy] punkt widoczny w kamerze
     const camera = new THREE.PerspectiveCamera(fov.fovValue, window.innerWidth / window.innerHeight, 0.1, 30000);    
-                                            // ogniskowa, proporcja ekranu, [najbliższy, najdalszy] punkt widoczny w kamerze
 
-    //const canvas = document.querySelector('#fireplaceView');
     const renderer = new THREE.WebGLRenderer({antialias: true});        // renderer - coś w rodzaju naszego płótna (canvas)
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio * 1.5);  // sharpening image after antialiasing
     document.body.appendChild( renderer.domElement );       // dodajemy renderer do naszego pliku HTML
 
     document.addEventListener("keydown", onDocumentKeyDown, false);     // adding event
-
-    // WALKING RANGE:
-    //
-    // X-axis (-2 - 2.9)
-    // Y-axis (0.01 - 2.3)
-    // Z-axis (-0.1 - 5)
-    //
 
     camera.position.z = 3;
     camera.position.y = 1;
@@ -40,12 +23,12 @@ function main(){
         // adding background
 
         let materialArray = [];
-        let backgroundFront = new THREE.TextureLoader().load('/res/night_sky_Front.jpg');
-        let backgroundBack  = new THREE.TextureLoader().load('/res/night_sky_Back.jpg');
-        let backgroundUp    = new THREE.TextureLoader().load('/res/night_sky_Top.jpg');
-        let backgroundDown  = new THREE.TextureLoader().load('/res/night_sky_Bottom.jpg');
-        let backgroundRight = new THREE.TextureLoader().load('/res/night_sky_Right.jpg');
-        let backgroundLeft  = new THREE.TextureLoader().load('/res/night_sky_Left.jpg');
+        let backgroundFront = new THREE.TextureLoader().load('res/night_sky_Front.jpg');
+        let backgroundBack  = new THREE.TextureLoader().load('res/night_sky_Back.jpg');
+        let backgroundUp    = new THREE.TextureLoader().load('res/night_sky_Top.jpg');
+        let backgroundDown  = new THREE.TextureLoader().load('res/night_sky_Bottom.jpg');
+        let backgroundRight = new THREE.TextureLoader().load('res/night_sky_Right.jpg');
+        let backgroundLeft  = new THREE.TextureLoader().load('res/night_sky_Left.jpg');
 
         materialArray.push(new THREE.MeshBasicMaterial({map: backgroundFront}));
         materialArray.push(new THREE.MeshBasicMaterial({map: backgroundBack}));
@@ -63,26 +46,16 @@ function main(){
         scene.add(skybox);
     }
 
-    //{
-        const color = 0xFFFF9D;
-        const intensity = 1;
-        const light = new THREE.PointLight(color, intensity);//new THREE.DirectionalLight(color, intensity);
-        // position: X, Y, Z
-        light.position.set(0.35, 0.3, 0.3);
-        scene.add(light);
-    //}
+    const color = 0xFFFF9D;
+    const intensity = 1;
+    const light = new THREE.PointLight(color, intensity);   //new THREE.DirectionalLight(color, intensity);
+    // position: X, Y, Z
+    light.position.set(0.35, 0.3, 0.3);
+    scene.add(light);
 
-    // adding light SPHERE helper
-    // const geometrySphere = new THREE.SphereGeometry(0.05);
-    // const materialSphere = new THREE.MeshLambertMaterial({color: 0xFFFF00});
-    // const sphere = new THREE.Mesh(geometrySphere, materialSphere);
-    // scene.add(sphere);
-
-    ///////////////////////////////////
     // adding whole room model
-
     var mtlLoader = new THREE.MTLLoader();
-    mtlLoader.setPath('/res/');
+    mtlLoader.setPath('res/');
 
     // loading 'mtl' - material files of object exported file
     mtlLoader.load('scene.mtl', function(materials){
@@ -97,57 +70,28 @@ function main(){
         // loading objects from obj file generated from Blender
         var objLoader = new THREE.OBJLoader();
         objLoader.setMaterials(materials);
-        objLoader.setPath('/res/');
+        objLoader.setPath('res/');
         objLoader.load('scene.obj', function(object){
             scene.add(object);
             object.position.y = 0;
         });
     });
 
-    // END OF adding whole room model
-    ///////////////////////////////////
-
-
-    ///////////////////////////////////
-    // TODO: delete before release
-    // ADDING helper arrows to the scene
+    // end adding model room
 
     const dir = new THREE.Vector3( 5, 0, 0 );
     //normalize the direction vector (convert to vector of length 1)
     dir.normalize();
 
-    const origin = new THREE.Vector3( 0, 0, 0 );
-    const length = 2;
-    const hex = 0xffff00;
-
-    const arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex );
-    scene.add( arrowHelper );
-
-    ///////////////////////////////////
-
-    // TODO: create particle effect - flame
-    // ----------------------
-    // ranges of particle positions
-    // LIMITS:
-    // X value: (0.05 - 0.65)
-    // Y value: (0.1 - 0.7)
-    // Z value: (-0.1 - 0.2)
-
-    // STARTING:
-    // X value: (0.1 - 0.6)
-    // Y value: (0.1)
-    // Z value: (-0.1 - 0.2)
     const PARTICLE_X_MIN = 0.05;
     const PARTICLE_X_MAX = 0.65;
     const PARTICLE_Y_MIN = 0.15;
-    const PARTICLE_Y_MAX = 0.6;
     const PARTICLE_Z_MIN = -0.1;
     const PARTICLE_Z_MAX = 0.15;
     const PARTICLE_X_MEAN = (PARTICLE_X_MAX + PARTICLE_X_MIN) / 2;
 
     const PARTICLE_LIMIT_X_MIN = PARTICLE_X_MIN - 0.05;
     const PARTICLE_LIMIT_X_MAX = PARTICLE_X_MAX + 0.05;
-    const PARTICLE_LIMIT_Y_MIN = PARTICLE_Y_MIN;
     const PARTICLE_LIMIT_Y_MAX = 0.7;
     const PARTICLE_LIMIT_Z_MIN = PARTICLE_Z_MIN;
     const PARTICLE_LIMIT_Z_MAX = PARTICLE_Z_MAX;
@@ -207,13 +151,12 @@ function main(){
             depthWrite: false,
             wireframe: false,
             blending: THREE
-                .AdditiveBlending // kluczowy element zapewniający mieszanie kolorów poszczególnych cząsteczek
+                .AdditiveBlending // Most important element provides color mixing for individual particles
         });
         var particles = []
         var particlesTTL = []
         var intervalTTL = 0.0;
         var newInterval = true;
-        var particleXvector = 0.0;
 
         function generate(ilosc) {
             while (particles.length) {
@@ -241,35 +184,12 @@ function main(){
             particlesTTL[index] = PARTICLE_TTL.inSec;
         }
 
-        // function update(speed, width, height) {
-        //     for (var i = 0; i < particles.length; i++) {
-        //         if (particles[i].position.y < height) {
-        //             particles[i].position.y += rand(0.01, 0.6);
-        //             particles[i].material.opacity -= 0.02;
-        //         } else {
-        //             particles[i].material.opacity = 1;
-        //             particles[i].position.y = 0;
-        //             particles[i].position.x = rand2(-0.175 , 0.55)
-        //             console.log(particles[i].position.x)
-        //         }
-        //         if (particles[i].position.y > height / 2) {
-        //             if (particles[i].position.x > 0.35)
-        //                 particles[i].position.x -= 0.02
-        //             else
-        //                 particles[i].position.x += 0.02
-        //         }
-        //     }
-        // }
-
-        // new UPDATE
+        // Updating function for particles
         function update(speed, width, height, delta){
             for(var i = 0; i < particles.length; i++){
-                // console.log(normalRand(0.3, 0.7));
-                // count TTL of a particle
                 particlesTTL[i] -= delta/1000;
                 
-                // if a particle has exceeded its life (TTL)
-                // delete it and create a new one
+                // if a particle has exceeded its life (TTL) delete it and create a new one
                 if(particlesTTL[i] < 0.0 ||
                     particles[i].position.y >= PARTICLE_LIMIT_Y_MAX ||
                     particles[i].material.opacity <= 0.0){
@@ -310,8 +230,6 @@ function main(){
             }
         }
 
-
-
         this.generate = function (val) {
             generate(val);
         }
@@ -324,7 +242,6 @@ function main(){
 
     var rotationH = 0;
     var rotationV = -11;
-    var distance = 10;
 
     // initial values - somewhere near the center of a chimney
     var posXsphere = 0.35;
@@ -364,20 +281,12 @@ function main(){
     }
 
     function setCamera(){
-        // var posZ = Math.cos(rotation * Math.PI/180) * distance;
-        // var posX = -Math.sin(rotation * Math.PI/180) * distance;
-        // camera.position.x = posX;
-        // camera.position.z = posZ;
-        
-        // camera.lookAt(0,0,0);
         camera.rotation.y = Math.PI/180 * rotationH;
         camera.rotation.x = Math.PI/180 * rotationV;
     }
 
     function setLightPos(){
-        // sphere.position.set(posXsphere, posYsphere, posZsphere);
         light.position.set(posXsphere, posYsphere, posZsphere);
-        // console.log("LIGHT POS (", posXsphere, posYsphere, posZsphere, ")");
     }
 
     ///////////////////////////////////
@@ -390,9 +299,7 @@ function main(){
 
     const gui = new lil.GUI();
     gui.add(fov, 'fovValue', 24, 70, 1).name('FOV').onChange( updateCameraFOV );
-    //gui.add(camera.rotation.x).name('Rotation vertical');
 
-    // gui.add(QUANTITY_P, 'size', 200, 2000, 100).name('Ilość cząsteczek');
     gui.add(PARTICLE_TTL    , 'inSec', 2.0, 4.0, 0.1).name('TTL cząsteczki');
     gui.add(INTERVAL_TTL    , 'inSec', 0.0, 0.5, 0.01).name('Interwał TTL cząsteczki');
     gui.add(DEVIATION_X_AXIS, 'minDev', 0.0, 0.05, 0.005).name('MIN dewiacja na osi X');
